@@ -119,8 +119,4 @@ Push and open a Pull Request
 
 MIT License — free to use and modify.
 
-👉 This gives your teammate a clear overview of the whole project while keeping backend/frontend details in their own README files.
 
-Do you want me to also draft a matching clean README for the frontend now, or should we keep focus on backend polish first?
-
-ChatGPT can make mistakes. Check importa
