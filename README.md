@@ -1,4 +1,4 @@
-#🌱 Carbon Footprint App
+## 🌱 Carbon Footprint App
 
 The Carbon Footprint App helps individuals and organizations track and reduce their carbon emissions.
 It provides insights into the environmental impact of daily activities (e.g., transport, energy, consumption) and suggests ways to make sustainable choices.
@@ -28,8 +28,8 @@ Separate frontend & backend folders
 
 Easy to expand with more emission categories or services
 
-# 📂 Project Structure
-
+## 📂 Project Structure
+```
 Carbon_Footprint_App/
 │
 ├── FRONTEND/               # React / Next.js (UI layer)
@@ -47,12 +47,14 @@ Carbon_Footprint_App/
 │   └── .env
 │
 └── README.md               # Project overview
+```
 
-Project overview (this file)
+## Project overview (this file)
+```
 
 ⚙️ Getting Started
 1. Clone the project
-git clone https://github.com/your-repo/carbon-footprint-app.git
+git clone https://github.com/Rennar77/carbon-footprint-app.git
 cd carbon-footprint-app
 
 2. Backend Setup
@@ -67,9 +69,7 @@ source venv/bin/activate   # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 
-3. Frontend Setup
 
-(if React or Next.js is used)
 
 cd FRONTEND
 npm install
@@ -79,6 +79,7 @@ npm run dev
 Frontend will run on http://localhost:3000
 
 Backend will run on http://localhost:8000
+```
 
 🧩 Tech Stack
 
