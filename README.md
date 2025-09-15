@@ -1,9 +1,9 @@
-🌱 Carbon Footprint App
+#🌱 Carbon Footprint App
 
 The Carbon Footprint App helps individuals and organizations track and reduce their carbon emissions.
 It provides insights into the environmental impact of daily activities (e.g., transport, energy, consumption) and suggests ways to make sustainable choices.
 
-🚀 Features
+#🚀 Features
 
 User-friendly frontend
 
@@ -28,22 +28,27 @@ Separate frontend & backend folders
 
 Easy to expand with more emission categories or services
 
-📂 Project Structure
+# 📂 Project Structure
+
 Carbon_Footprint_App/
 │
 ├── FRONTEND/               # React / Next.js (UI layer)
-│   └── ...                 # components, pages, etc.
+│   ├── components/         # Reusable UI parts
+│   ├── pages/              # App pages
+│   └── package.json
 │
 ├── BACKEND/                # FastAPI backend
 │   ├── app/
-│   │   ├── main.py
-│   │   ├── routers/
+│   │   ├── main.py         # Entry point
+│   │   ├── routers/        # API routes
 │   │   └── __init__.py
-│   ├── test/
+│   ├── test/               # Test files
 │   ├── requirements.txt
 │   └── .env
 │
-└── README.md               # Project overview (this file)
+└── README.md               # Project overview
+
+Project overview (this file)
 
 ⚙️ Getting Started
 1. Clone the project
