@@ -3,7 +3,7 @@
 The Carbon Footprint App helps individuals and organizations track and reduce their carbon emissions.
 It provides insights into the environmental impact of daily activities (e.g., transport, energy, consumption) and suggests ways to make sustainable choices.
 
-#🚀 Features
+## 🚀 Features
 
 User-friendly frontend
 
@@ -81,9 +81,9 @@ Frontend will run on http://localhost:3000
 Backend will run on http://localhost:8000
 ```
 
-🧩 Tech Stack
+## 🧩 Tech Stack
 
-Frontend: React / Next.js, TailwindCSS
+Frontend: Flutter
 
 Backend: FastAPI, Python, Uvicorn
 
@@ -93,7 +93,7 @@ External API: Climatiq API for emissions data
 
 Auth: (Planned) Supabase Auth
 
-🎯 Roadmap
+## 🎯 Roadmap
 
  Set up FastAPI backend with Climatiq integration
 
@@ -105,7 +105,7 @@ Auth: (Planned) Supabase Auth
 
  Deploy (Vercel for frontend, Render/Heroku for backend)
 
-🤝 Contributing
+## 🤝 Contributing
 
 Fork the repo
 
@@ -115,7 +115,7 @@ Commit changes
 
 Push and open a Pull Request
 
-📜 License
+## 📜 License
 
 MIT License — free to use and modify.
 
