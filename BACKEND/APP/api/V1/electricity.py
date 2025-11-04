@@ -6,23 +6,22 @@ import requests
 router = APIRouter(prefix="/v1/electricity", tags=["electricity"])
 
 CLIMATIQ_API_KEY = os.getenv("CLIMATIQ_API_KEY")
-BASE_URL = "https://api.climatiq.io/data/v1/estimate"
+BASE_URL = "https://api.climatiq.io/v1/estimate"
 
 
 class ElectricityEstimateRequest(BaseModel):
     activity_id: str
-    data_version: str = "25.25"
     parameters: dict
 
 
 @router.post("/estimate")
 def estimate_electricity(req: ElectricityEstimateRequest):
-    headers = {"Authorization": f"Bearer {CLIMATIQ_API_KEY}"}
+    headers = {
+        "Authorization": f"Bearer {CLIMATIQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
     payload = {
-        "emission_factor": {
-            "activity_id": req.activity_id,
-            "data_version": req.data_version,
-        },
+        "activity_id": req.activity_id,
         "parameters": req.parameters,
     }
     resp = requests.post(BASE_URL, headers=headers, json=payload)

@@ -1,41 +1,75 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:carbon_footprint_app/utils/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  final http.Client _client;
+  static const String baseUrl = "http://192.168.1.6:8000"; // your backend IP
+  static const Map<String, String> _headers = {
+    "Content-Type": "application/json",
+  };
 
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  /// 🔹 POST request
+  static Future<Map<String, dynamic>?> post(
+    String endpoint,
+    Map<String, dynamic> body, {
+    bool auth = false,
+  }) async {
+    final headers = Map<String, String>.from(_headers);
 
-  Future<String> fetchRootMessage() async {
-    final uri = Uri.parse('${AppConstants.backendBaseUrl}/');
-    final resp = await _client.get(uri);
-    if (resp.statusCode != 200) {
-      throw Exception('Failed to reach backend: ${resp.statusCode}');
+    // Attach token if needed
+    if (auth) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
     }
-    final data = jsonDecode(resp.body) as Map<String, dynamic>;
-    return data['message']?.toString() ?? 'OK';
+
+    final response = await http.post(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      try {
+        return jsonDecode(response.body);
+      } catch (_) {
+        return {"detail": "Request failed with ${response.statusCode}"};
+      }
+    }
   }
 
-  Future<Map<String, dynamic>> estimateTrip({
-    required String activityId,
-    required Map<String, dynamic> parameters,
-    String dataVersion = '25.25',
+  /// 🔹 GET request
+  static Future<Map<String, dynamic>?> get(
+    String endpoint, {
+    bool auth = false,
   }) async {
-    final uri = Uri.parse('${AppConstants.backendBaseUrl}/v1/trips/estimate');
-    final resp = await _client.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'activity_id': activityId,
-        'data_version': dataVersion,
-        'parameters': parameters,
-      }),
-    );
-    if (resp.statusCode != 200) {
-      throw Exception('Trip estimate failed: ${resp.statusCode} ${resp.body}');
+    final headers = Map<String, String>.from(_headers);
+
+    if (auth) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
     }
-    return jsonDecode(resp.body) as Map<String, dynamic>;
+
+    final response = await http.get(
+      Uri.parse("$baseUrl$endpoint"),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      try {
+        return jsonDecode(response.body);
+      } catch (_) {
+        return {"detail": "Request failed with ${response.statusCode}"};
+      }
+    }
   }
 }
-
