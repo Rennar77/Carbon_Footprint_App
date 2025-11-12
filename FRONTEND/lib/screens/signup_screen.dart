@@ -3,7 +3,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_textfield.dart';
 import '../utils/theme.dart';
 import 'login_screen.dart';
-import '../services/auth_service.dart'; // ✅ now using AuthService
+import '../services/auth_service.dart'; 
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});

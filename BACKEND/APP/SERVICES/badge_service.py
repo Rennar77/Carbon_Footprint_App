@@ -1,5 +1,5 @@
 import psycopg2.extras
-from CORE.database import get_db
+from core.database import get_db
 
 def award_badges_for_user(user_id: int):
     conn = get_db()

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from SCHEMAS.trip_schema import CarLog, ElectricityLog, FlightLog
-from SCHEMAS.cooking_schema import CookingLog
-from SERVICES.auth_service import get_current_user
-from CORE.database import get_db
+from schemas.trip_schema import CarLog, ElectricityLog, FlightLog
+from schemas.cooking_schema import CookingLog
+from services.auth_service import get_current_user
+from core.database import get_db
 import psycopg2.extras, json
 
 router = APIRouter(tags=["Logs"])

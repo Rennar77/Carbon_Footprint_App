@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../services/log_service.dart';
 
 class FlightTab extends StatefulWidget {
   const FlightTab({super.key});
@@ -11,7 +10,6 @@ class FlightTab extends StatefulWidget {
 
 class _FlightTabState extends State<FlightTab>
     with SingleTickerProviderStateMixin {
-
   final TextEditingController _distanceController = TextEditingController();
   String _selectedClass = 'Economy';
   double? _calculatedCO2;
@@ -47,9 +45,8 @@ class _FlightTabState extends State<FlightTab>
     super.dispose();
   }
 
-  Future<void> _calculateFlightEmission() async {
+  Future<void> _logFlight() async {
     final distance = double.tryParse(_distanceController.text);
-
     if (distance == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter a valid distance")),
@@ -60,30 +57,26 @@ class _FlightTabState extends State<FlightTab>
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse("http://10.0.2.2:8000/api/calculate_flight_emission"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "distance": distance,
-          "travel_class": _selectedClass,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
+      final co2 = await LogService.logFlight(distance, _selectedClass);
+      if (co2 != null) {
         setState(() {
-          _calculatedCO2 = data["emission"];
+          _calculatedCO2 = co2;
           _isLoading = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Logged: ${co2.toStringAsFixed(2)} kg CO₂")),
+        );
       } else {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${response.body}")),
+          const SnackBar(content: Text("Failed to log flight")),
         );
       }
     } catch (e) {
       setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     }
   }
 
@@ -91,23 +84,18 @@ class _FlightTabState extends State<FlightTab>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
 
     return SingleChildScrollView(
       child: Column(
         children: [
-          // ✅ Uniform Gradient Header (like Cooking/Electricity)
+          // Gradient header with plane animation
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 40, 20, 40),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color(0xFF00C6FF),
-                  Color(0xFF0072FF),
-                ],
+                colors: [Color(0xFF00C6FF), Color(0xFF0072FF)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -136,7 +124,7 @@ class _FlightTabState extends State<FlightTab>
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "Calculate CO₂ from your trip",
+                  "Estimate & log your flight CO₂",
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white.withOpacity(0.9),
                   ),
@@ -147,7 +135,6 @@ class _FlightTabState extends State<FlightTab>
 
           const SizedBox(height: 24),
 
-          // ✅ Main Card (exactly matches the pattern)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -169,11 +156,9 @@ class _FlightTabState extends State<FlightTab>
                 children: [
                   const Text(
                     "Flight Distance (km)",
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-
                   TextField(
                     controller: _distanceController,
                     keyboardType: TextInputType.number,
@@ -182,40 +167,28 @@ class _FlightTabState extends State<FlightTab>
                       border: OutlineInputBorder(),
                     ),
                   ),
-
                   const SizedBox(height: 22),
-
                   const Text(
                     "Travel Class",
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
-
                   DropdownButtonFormField<String>(
                     value: _selectedClass,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: const [
-                      DropdownMenuItem(
-                          value: "Economy", child: Text("Economy Class")),
-                      DropdownMenuItem(
-                          value: "Business", child: Text("Business Class")),
-                      DropdownMenuItem(
-                          value: "First", child: Text("First Class")),
+                      DropdownMenuItem(value: "Economy", child: Text("Economy Class")),
+                      DropdownMenuItem(value: "Business", child: Text("Business Class")),
+                      DropdownMenuItem(value: "First", child: Text("First Class")),
                     ],
-                    onChanged: (value) =>
-                        setState(() => _selectedClass = value!),
+                    onChanged: (value) => setState(() => _selectedClass = value!),
                   ),
-
                   const SizedBox(height: 28),
-
-                  // ✅ Same Green Button as Car/Electricity/Cooking
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
+                      onPressed: _logFlight,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade600,
                         foregroundColor: Colors.white,
@@ -223,57 +196,46 @@ class _FlightTabState extends State<FlightTab>
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: _calculateFlightEmission,
                       child: const Text(
-                        "Calculate CO₂ Emission",
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        "Log Flight CO₂",
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
+                  if (_calculatedCO2 != null) ...[
+                    const SizedBox(height: 24),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            "Estimated CO₂ Emission",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            "${_calculatedCO2!.toStringAsFixed(2)} kg",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
 
-          if (_calculatedCO2 != null) ...[
-            const SizedBox(height: 24),
-
-            // ✅ Result card styled like other tabs
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Estimated CO₂ Emission",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      "${_calculatedCO2!.toStringAsFixed(2)} kg",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 40), // ✅ No awkward bottom space
+          const SizedBox(height: 40),
         ],
       ),
     );

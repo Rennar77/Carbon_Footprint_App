@@ -30,7 +30,10 @@ def get_vehicles():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     try:
-        cur.execute("SELECT id, make, model, year, fuel_type FROM vehicle")
+        cur.execute("""
+            SELECT id, make, model, year, city_mpg, hwy_mpg, comb_mpg, city_co2, hwy_co2, comb_co2
+            FROM vehicles
+        """)
         rows = cur.fetchall()
 
         vehicles = [
@@ -39,7 +42,12 @@ def get_vehicles():
                 "make": row["make"],
                 "model": row["model"],
                 "year": row["year"],
-                "fuel_type": row["fuel_type"],
+                "city_mpg": row["city_mpg"],
+                "hwy_mpg": row["hwy_mpg"],
+                "comb_mpg": row["comb_mpg"],
+                "city_co2": row["city_co2"],
+                "hwy_co2": row["hwy_co2"],
+                "comb_co2": row["comb_co2"],
             }
             for row in rows
         ]

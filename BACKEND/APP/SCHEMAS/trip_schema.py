@@ -11,4 +11,4 @@ class ElectricityLog(BaseModel):
 
 class FlightLog(BaseModel):
     distance_km: float
-    class_type: Optional[str] = "economy"
+    class_type: str

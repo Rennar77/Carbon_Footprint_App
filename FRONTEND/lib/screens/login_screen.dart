@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 40),
 
-                // ✅ New Updated Branding Section
+                // Branding Section
                 const Icon(
                   Icons.eco_outlined,
                   size: 90,
