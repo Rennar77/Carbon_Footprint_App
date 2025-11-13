@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from SCHEMAS.user_schema import UserLogin, UserRegister
-from SERVICES.auth_service import create_user, verify_password, create_access_token
-from CORE.database import get_db
+from schemas.user_schema import UserLogin, UserRegister
+from services.auth_service import create_user, verify_password, create_access_token
+from core.database import get_db
 
 import psycopg2
 
