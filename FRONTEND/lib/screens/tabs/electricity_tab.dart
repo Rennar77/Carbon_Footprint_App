@@ -152,7 +152,7 @@ class _ElectricityTabState extends State<ElectricityTab>
 
                   const SizedBox(height: 28),
 
-                  // ✅ Green button EXACTLY like Car Tab
+                  // Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -191,7 +191,7 @@ class _ElectricityTabState extends State<ElectricityTab>
             ),
           ),
 
-          const SizedBox(height: 40), // ✅ no awkward bottom space
+          const SizedBox(height: 40), 
         ],
       ),
     );

@@ -53,26 +53,46 @@ class _CookingTabState extends State<CookingTab>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    IconData fuelIcon =
-        type == 'charcoal' ? Icons.local_fire_department : Icons.local_gas_station;
+    // ✅ Dynamic icon for each fuel type
+    IconData fuelIcon;
+    Color gradientStart;
+    Color gradientEnd;
+    String titleText;
+
+    switch (type) {
+      case 'lpg':
+        fuelIcon = Icons.local_gas_station;
+        gradientStart = const Color(0xFF00B4DB);
+        gradientEnd = const Color(0xFF0083B0);
+        titleText = "LPG Cooking";
+        break;
+      case 'firewood':
+        fuelIcon = Icons.eco_rounded;
+        gradientStart = const Color(0xFF9B7653);
+        gradientEnd = const Color(0xFF654321);
+        titleText = "Firewood Cooking";
+        break;
+      default:
+        fuelIcon = Icons.local_fire_department;
+        gradientStart = const Color(0xFFFF7A00);
+        gradientEnd = const Color(0xFFB80000);
+        titleText = "Charcoal Cooking";
+    }
 
     return SingleChildScrollView(
       child: Column(
         children: [
-          // ✅ Fire Gradient Header
+          // ✅ Gradient Header
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 40, 20, 40),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color(0xFFFF7A00), // bright flame orange
-                  Color(0xFFB80000), // deep fire red
-                ],
+                colors: [gradientStart, gradientEnd],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(28),
                 bottomRight: Radius.circular(28),
               ),
@@ -89,9 +109,7 @@ class _CookingTabState extends State<CookingTab>
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  type == "charcoal"
-                      ? "Charcoal Cooking"
-                      : "LPG Cooking",
+                  titleText,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -124,7 +142,7 @@ class _CookingTabState extends State<CookingTab>
                     spreadRadius: 2,
                     color: Colors.black.withOpacity(0.06),
                     offset: const Offset(0, 6),
-                  )
+                  ),
                 ],
               ),
               child: Column(
@@ -140,6 +158,7 @@ class _CookingTabState extends State<CookingTab>
                   ),
                   const SizedBox(height: 8),
 
+                  // ✅ Fuel Dropdown with Firewood
                   DropdownButtonFormField<String>(
                     value: type,
                     decoration: InputDecoration(
@@ -151,9 +170,17 @@ class _CookingTabState extends State<CookingTab>
                     ),
                     items: const [
                       DropdownMenuItem(
-                          value: 'charcoal', child: Text("Charcoal")),
+                        value: 'charcoal',
+                        child: Text("Charcoal"),
+                      ),
                       DropdownMenuItem(
-                          value: 'lpg', child: Text("LPG (Gas)")),
+                        value: 'lpg',
+                        child: Text("LPG (Gas)"),
+                      ),
+                      DropdownMenuItem(
+                        value: 'firewood',
+                        child: Text("Firewood"),
+                      ),
                     ],
                     onChanged: (val) => setState(() => type = val!),
                   ),
@@ -201,7 +228,9 @@ class _CookingTabState extends State<CookingTab>
                       child: const Text(
                         "Log Cooking",
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

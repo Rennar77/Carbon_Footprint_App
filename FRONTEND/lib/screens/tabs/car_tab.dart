@@ -9,7 +9,6 @@ class CarTab extends StatefulWidget {
 }
 
 class _CarTabState extends State<CarTab> {
-
   final TextEditingController _distanceController = TextEditingController();
   final TextEditingController _makeController = TextEditingController();
   final TextEditingController _modelController = TextEditingController();
@@ -24,11 +23,6 @@ class _CarTabState extends State<CarTab> {
   void initState() {
     super.initState();
     _loadVehicles();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   Future<void> _loadVehicles() async {
@@ -50,7 +44,7 @@ class _CarTabState extends State<CarTab> {
       vehicleData = {
         "make": _makeController.text,
         "model": _modelController.text,
-        "comb_co2": double.tryParse(_mpgController.text) ?? 250.0,
+        "comb_co2": double.tryParse(_mpgController.text) ?? 220.0,
       };
     } else if (selectedVehicle != null) {
       vehicleData = selectedVehicle!;
@@ -61,8 +55,7 @@ class _CarTabState extends State<CarTab> {
       return;
     }
 
-    final emission =
-        LogService.calculateVehicleEmission(vehicleData, distance);
+    final emission = LogService.calculateVehicleEmission(vehicleData, distance);
 
     setState(() {
       estimatedEmission = emission;
@@ -82,9 +75,7 @@ class _CarTabState extends State<CarTab> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          "Logged: ${co2.toStringAsFixed(2)} kg CO₂",
-        ),
+        content: Text("Trip saved: ${co2.toStringAsFixed(2)} kg CO₂"),
       ),
     );
 
@@ -98,16 +89,13 @@ class _CarTabState extends State<CarTab> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // ✅ Full-width Gradient Header
+          // ✅ Header
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 40, 20, 40),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color(0xFF2ECC71),
-                  Color(0xFF27AE60),
-                ],
+                colors: [Color(0xFF2ECC71), Color(0xFF27AE60)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -118,11 +106,8 @@ class _CarTabState extends State<CarTab> {
             ),
             child: Column(
               children: [
-                const Icon(
-                  Icons.directions_car_rounded,
-                  size: 80,
-                  color: Colors.white,
-                ),
+                const Icon(Icons.directions_car_rounded,
+                    size: 80, color: Colors.white),
                 const SizedBox(height: 12),
                 Text(
                   "Vehicle Emissions",
@@ -133,10 +118,9 @@ class _CarTabState extends State<CarTab> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  "Estimate & log your car's carbon output",
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
-                  ),
+                  "Preview and log your car's CO₂ output",
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: Colors.white.withOpacity(0.9)),
                 ),
               ],
             ),
@@ -144,7 +128,7 @@ class _CarTabState extends State<CarTab> {
 
           const SizedBox(height: 24),
 
-          // ✅ Main Card (matching ElectricityTab)
+          // ✅ Main Card
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -164,12 +148,13 @@ class _CarTabState extends State<CarTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ Switch
+                  // ✅ Custom vehicle switch
                   Row(
                     children: [
                       const Text(
                         "Use Custom Vehicle",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
                       Switch(
@@ -186,7 +171,7 @@ class _CarTabState extends State<CarTab> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ✅ Dropdown or Custom inputs
+                  // ✅ Dropdown or Custom input
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: isCustomVehicle
@@ -197,18 +182,41 @@ class _CarTabState extends State<CarTab> {
                               const SizedBox(height: 12),
                               _input(_modelController, "Model"),
                               const SizedBox(height: 12),
-                              _input(_mpgController, "CO₂ (g/km)",
-                                  keyboard: TextInputType.number),
+                              DropdownButtonFormField<double>(
+                                value: double.tryParse(_mpgController.text),
+                                isExpanded: true,
+                                items: const [
+                                  DropdownMenuItem(
+                                      value: 180.0, child: Text("Sedan")),
+                                  DropdownMenuItem(
+                                      value: 220.0,
+                                      child: Text("Mid-size SUV")),
+                                  DropdownMenuItem(
+                                      value: 260.0, child: Text("SUV")),
+                                ],
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    _mpgController.text = value.toString();
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                  labelText: "Vehicle Type",
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
                             ],
                           )
                         : DropdownButtonFormField<Map<String, dynamic>>(
                             key: const ValueKey("dropdown"),
                             value: selectedVehicle,
+                            isExpanded: true, // ✅ prevents overflow
                             items: vehicles
                                 .map((v) => DropdownMenuItem(
                                       value: v,
                                       child: Text(
-                                          "${v['make']} ${v['model']} (${v['year']})"),
+                                        "${v['make']} ${v['model']} (${v['year']})",
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ))
                                 .toList(),
                             onChanged: (v) =>
@@ -228,21 +236,21 @@ class _CarTabState extends State<CarTab> {
 
                   const SizedBox(height: 28),
 
-                  // ✅ Buttons
+                  // ✅ Buttons with clearer names
                   Row(
                     children: [
                       Expanded(
                         child: _greenButton(
-                          icon: Icons.calculate,
-                          text: "Estimate",
+                          icon: Icons.preview,
+                          text: "Preview Emission",
                           action: _previewEmission,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _greenButton(
-                          icon: Icons.check_circle,
-                          text: "Log Trip",
+                          icon: Icons.save,
+                          text: "Save Trip",
                           action: _logCar,
                         ),
                       ),
@@ -277,7 +285,7 @@ class _CarTabState extends State<CarTab> {
     );
   }
 
-  // ✅ Input field
+  // ✅ Input field widget
   Widget _input(TextEditingController c, String label,
       {TextInputType keyboard = TextInputType.text}) {
     return TextField(
@@ -290,11 +298,12 @@ class _CarTabState extends State<CarTab> {
     );
   }
 
-  // ✅ Unified green button
-  Widget _greenButton(
-      {required IconData icon,
-      required String text,
-      required VoidCallback action}) {
+  // ✅ Unified green button widget
+  Widget _greenButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback action,
+  }) {
     return ElevatedButton.icon(
       onPressed: action,
       icon: Icon(icon, color: Colors.white),
@@ -302,7 +311,8 @@ class _CarTabState extends State<CarTab> {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.green.shade600,
         padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }

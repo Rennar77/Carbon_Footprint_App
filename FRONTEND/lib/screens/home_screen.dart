@@ -6,6 +6,7 @@ import 'tabs/electricity_tab.dart';
 import 'tabs/flight_tab.dart';
 import 'tabs/summary_tab.dart';
 import 'tabs/cooking_tab.dart';
+import 'dashboard_screen.dart'; // ✅ Added import for dashboard
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -70,6 +71,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           centerTitle: true,
+
+          // ✅ Dashboard button on the top-right corner
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.dashboard, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DashboardTab(userId: 1),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
 
@@ -112,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
             NavigationDestination(
               icon: Icon(Icons.bolt_outlined),
               selectedIcon: Icon(Icons.bolt),
-              label: "Electricity",
+              label: "Power",
             ),
             NavigationDestination(
               icon: Icon(Icons.flight_outlined),
