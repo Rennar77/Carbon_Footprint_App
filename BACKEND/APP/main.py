@@ -21,7 +21,8 @@ app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(log_service.router, prefix="/log", tags=["Logging"])
 app.include_router(summary_service.router, prefix="/dashboard", tags=["Summary"])
 app.include_router(vehicle_service.router, tags=["Vehicles"])
-app.include_router(recommendation_router, prefix="/api", tags=["Recommendations"])  # include new route
+app.include_router(recommendation_router, prefix="/api", tags=["Recommendations"])  
+app.include_router(auth_router, prefix="/api")
 
 @app.get("/")
 def home():

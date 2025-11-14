@@ -1,5 +1,5 @@
 name: carbon_footprint_app
-description: Minimal Flutter app to call backend Carbon Footprint API
+description: ECOTRACK – Carbon Footprint Tracker
 publish_to: 'none'
 
 version: 0.1.0+1
@@ -15,12 +15,17 @@ dependencies:
   google_fonts: ^6.1.0
   fl_chart: ^0.68.0
   shared_preferences: ^2.2.2
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.13.1
+  image: ^4.1.0
+  rename: ^3.1.0
+
+
 
 flutter:
   uses-material-design: true
@@ -29,6 +34,6 @@ flutter_icons:
   android: true
   ios: true
   min_sdk_android: 21
-  image_path: "assets/icons/app_icon.png"
+  image_path: "lib/assets/icons/app_icon.png"
   adaptive_icon_background: "#1B5E20"
-  adaptive_icon_foreground: "assets/icons/app_icon.png"
+  adaptive_icon_foreground: "lib/assets/icons/app_icon.png"

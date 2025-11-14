@@ -27,7 +27,8 @@ class _DashboardTabState extends State<DashboardTab> {
   Future<void> _fetchRecommendation() async {
     setState(() => loading = true);
 
-    final data = await ApiService.get("/api/recommendation/${widget.userId}");
+    final data = await ApiService.get("/api/api/recommendation/${widget.userId}");
+
 
     if (data != null) {
       final rec = data['recommendation']?.toString();

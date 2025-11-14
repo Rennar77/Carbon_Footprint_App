@@ -6,7 +6,8 @@ import 'tabs/electricity_tab.dart';
 import 'tabs/flight_tab.dart';
 import 'tabs/summary_tab.dart';
 import 'tabs/cooking_tab.dart';
-import 'dashboard_screen.dart'; // ✅ Added import for dashboard
+import 'dashboard_screen.dart';
+import 'profile_screen.dart'; // ✅ Added import for ProfileScreen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
 
-      // ✅ Soft Rounded Rectangle Top Header
+      // Soft Rounded Rectangle Top Header
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(130),
         child: AppBar(
@@ -69,10 +70,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-
           centerTitle: true,
 
-          // ✅ Dashboard button on the top-right corner
+          // ✅ Dashboard and Profile buttons on the top-right corner
           actions: [
             IconButton(
               icon: const Icon(Icons.dashboard, color: Colors.white),
@@ -81,6 +81,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const DashboardTab(userId: 1),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.person, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
                   ),
                 );
               },
@@ -152,30 +163,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ✅ Soft Rounded Rectangle Curve (like a soft card top)
+// Soft Rounded Rectangle Curve (like a soft card top)
 class SoftTopClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    final double curveHeight = 40; // small, subtle roundness
+    final double curveHeight = 40;
 
     final path = Path();
-
-    // Start bottom-left
     path.lineTo(0, size.height - curveHeight);
-
-    // ✅ Soft curve from left → center → right
     path.quadraticBezierTo(
-      size.width / 2, size.height, // gentle rise
+      size.width / 2, size.height,
       size.width, size.height - curveHeight,
     );
-
-    // Right edge → top
     path.lineTo(size.width, 0);
-
-    // Close shape
     path.lineTo(0, 0);
     path.close();
-
     return path;
   }
 
