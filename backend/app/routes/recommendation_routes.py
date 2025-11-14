@@ -1,10 +1,11 @@
 # recommendation_routes.py
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any, List
-from services.ai_services import generate_recommendation
-from services.badge_service import award_badges_for_user
-from services.log_service import get_user_summary
-from core.database import get_db
+from app.services.ai_services import generate_recommendation
+from app.services.badge_service import award_badges_for_user
+from app.services.log_service import get_user_summary
+from app.core.database import get_db
+
 import re
 
 router = APIRouter(prefix="/api")

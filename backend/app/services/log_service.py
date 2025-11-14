@@ -1,14 +1,15 @@
 # log_service.py
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from core.database import get_db
-from services.badge_service import award_badges_for_user
-from services.auth_service import get_current_user
+from app.core.database import get_db
+from app.services.badge_service import award_badges_for_user
+from app.services.auth_service import get_current_user
 from datetime import datetime
 from typing import Optional, Dict, Any
 import psycopg2.extras
 import json
 import asyncio
+
 
 router = APIRouter()
 

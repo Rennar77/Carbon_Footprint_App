@@ -1,9 +1,9 @@
 # services/badge_service.py
 import psycopg2.extras
-from core.database import get_db
+from app.core.database import get_db  # ✅ updated import
 
 async def award_badges_for_user(user_id: int):
-    from services.log_service import get_user_summary  # lazy import to avoid circular import
+    from app.services.log_service import get_user_summary  # ✅ updated lazy import
 
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)

@@ -3,9 +3,9 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from typing import Optional
-from schemas.user_schema import UserLogin, UserRegister, UserUpdate
-from services.auth_service import create_user, verify_password, create_access_token, hash_password
-from core.database import get_db
+from app.services.auth_service import create_user, verify_password, create_access_token, hash_password
+from app.core.database import get_db
+from app.schemas.user_schema import UserLogin, UserRegister, UserUpdate
 import psycopg2
 import psycopg2.extras
 import shutil
