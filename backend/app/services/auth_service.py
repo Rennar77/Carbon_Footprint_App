@@ -74,11 +74,12 @@ def create_user(name: str, email: str, password: str) -> bool:
 # Password helpers
 # -----------------------------
 def hash_password(password: str) -> str:
-    truncated = password[:72]  # bcrypt limit
+    # bcrypt max is 72 bytes, truncate safely
+    truncated = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
     return pwd_context.hash(truncated)
 
 def verify_password(password: str, hashed: str) -> bool:
-    truncated = password[:72]
+    truncated = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
     return pwd_context.verify(truncated, hashed)
 
 
