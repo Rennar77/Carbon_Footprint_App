@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.1.7:8000";
+  static const String baseUrl = "https://carbon-footprint-app-41f7.onrender.com";
   static const Map<String, String> _headers = {
     "Content-Type": "application/json",
   };
