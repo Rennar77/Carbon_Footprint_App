@@ -136,13 +136,13 @@ FRONTEND/build/app/outputs/flutter-apk/app-release.apk
 You can share this file directly with friends.
 
 # 🧪 Tech Stack
-Mobile
+## Mobile
 
 Flutter (Dart)
 
 Material Design 3
 
-Backend
+## Backend
 
 FastAPI
 
@@ -152,20 +152,20 @@ Uvicorn
 
 JWT (jose + passlib)
 
-Database
+## Database
 
 PostgreSQL (Render)
 
 Custom-seeded vehicle dataset (2026 models)
 
-Auth
+## Auth
 
 JWT (current)
 
 Firebase OTP (planned)
 
-## 🗺️ Roadmap
-# 🚀 In Development
+# 🗺️ Roadmap
+## 🚀 In Development
 
 Fixing profile bugs from deployment
 
@@ -173,7 +173,7 @@ Adding forgot-password screen
 
 Integrating Firebase OTP (auth overhaul)
 
-# 🔜 Future Enhancements
+## 🔜 Future Enhancements
 
 Analytics graphs (weekly/monthly footprint)
 
