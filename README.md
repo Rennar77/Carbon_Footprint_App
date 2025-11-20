@@ -1,11 +1,11 @@
-## 🌍 EcoTrack – Carbon Footprint Monitoring App
+# 🌍 EcoTrack – Carbon Footprint Monitoring App
 
 A modern mobile app that empowers users to track, understand, and reduce their carbon footprint.
 
 EcoTrack combines a sleek Flutter mobile UI, a robust FastAPI backend, and real-world emissions data (including 2026 vehicle datasets from fueleconomy.gov) to provide accurate environmental impact insights.
 
-## ✨ Features
-# 📱 Flutter Mobile App
+# ✨ Features
+## 📱 Flutter Mobile App
 
 Smooth & responsive UI
 
@@ -53,22 +53,23 @@ Profile screen redesign
 
 
 
-Car Tab
-![Screenshot_2025-11-20-12-15-31-80_6fadc5a6af6d61dfdadcfcc4e0542daa](https://github.com/user-attachments/assets/c1c38834-429d-4dba-ba51-46d760f39c10)
+## 🚗 Car Tab
 
-Summary
-![Screenshot_2025-11-20-12-15-48-25_6fadc5a6af6d61dfdadcfcc4e0542daa](https://github.com/user-attachments/assets/73a841d8-182d-45b7-b6ed-e7d10e8a7b42)
+<img src="https://github.com/user-attachments/assets/c1c38834-429d-4dba-ba51-46d760f39c10" width="300" />
 
-	
-	
-Recommendation and Badges
-![Screenshot_2025-11-20-12-18-07-43_6fadc5a6af6d61dfdadcfcc4e0542daa](https://github.com/user-attachments/assets/d81cc37d-1fca-4558-8bbe-ba669dc20dc4)
+## 📊 Summary
 
+<img src="https://github.com/user-attachments/assets/73a841d8-182d-45b7-b6ed-e7d10e8a7b42" width="300" />
+
+## 🌱 Recommendations & Badges
+
+<img src="https://github.com/user-attachments/assets/d81cc37d-1fca-4558-8bbe-ba669dc20dc4" width="300" />
 	
 	
 # 🧱 Project Structure
 
-``Carbon_Footprint_App/
+```
+Carbon_Footprint_App/
 │
 ├── FRONTEND/               # Flutter mobile application
 │   ├── lib/
@@ -91,9 +92,9 @@ Recommendation and Badges
 │   └── .env (ignored)
 │
 └── README.md
-``
+```
 
-# ⚙️ Setup Instructions
+## ⚙️ Setup Instructions
 🔧 Backend (FastAPI)
 ```
 git clone https://github.com/Rennar77/carbon-footprint-app.git
@@ -113,7 +114,7 @@ API Root → http://localhost:8000
 
 Docs → http://localhost:8000/docs
 
-# 📱 Frontend (Flutter)
+## 📱 Frontend (Flutter)
 ```
 cd ../FRONTEND
 
@@ -121,7 +122,7 @@ flutter pub get
 flutter run
 ```
 
-# To build an APK:
+## To build an APK:
 ``
 flutter build apk --release
 ``
