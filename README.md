@@ -1,122 +1,199 @@
-## 🌱 Carbon Footprint App
+## 🌍 EcoTrack – Carbon Footprint Monitoring App
 
-The Carbon Footprint App helps individuals and organizations track and reduce their carbon emissions.
-It provides insights into the environmental impact of daily activities (e.g., transport, energy, consumption) and suggests ways to make sustainable choices.
+A modern mobile app that empowers users to track, understand, and reduce their carbon footprint.
 
-## 🚀 Features
+EcoTrack combines a sleek Flutter mobile UI, a robust FastAPI backend, and real-world emissions data (including 2026 vehicle datasets from fueleconomy.gov) to provide accurate environmental impact insights.
 
-User-friendly frontend
+## ✨ Features
+# 📱 Flutter Mobile App
 
-Simple interface to input activities (travel, energy, etc.)
+Smooth & responsive UI
 
-Real-time display of estimated carbon footprint
+Activity-based footprint tracking
 
-(Future) Analytics dashboard for personal tracking
+Vehicle emission lookup (using 2026 dataset)
 
-FastAPI backend
+Persistent login using JWT
 
-Connects to Climatiq API
- for accurate carbon data
+Offline-friendly design
 
-Modular endpoints for calculations and user management
+Easily shareable APK builds (no Play Store needed)
 
-(Future) Supabase database integration for user profiles and history
+# ⚙️ FastAPI Backend
 
-Scalable design
+Fast, modern Python API
 
-Separate frontend & backend folders
+Secure authentication (JWT)
 
-Easy to expand with more emission categories or services
+PostgreSQL database hosted on Render
 
-## 📂 Project Structure
-```
-Carbon_Footprint_App/
+Seeded emissions dataset for vehicles & activities
+
+Extensible modular architecture (routers, services, DB layer)
+
+# 🔒 Authentication
+
+Email + password (JWT)
+
+Upcoming: Firebase OTP login, signup & password reset
+
+# 📊 Roadmap Features
+
+Full analytics dashboard
+
+Emission trends & charts
+
+User badges, achievements & streaks
+
+Recommendation engine for sustainable habits
+
+Profile screen redesign
+
+# 🖼️ Screenshots
+
+
+
+Car Tab
+![Screenshot_2025-11-20-12-15-31-80_6fadc5a6af6d61dfdadcfcc4e0542daa](https://github.com/user-attachments/assets/c1c38834-429d-4dba-ba51-46d760f39c10)
+
+Summary
+![Screenshot_2025-11-20-12-15-48-25_6fadc5a6af6d61dfdadcfcc4e0542daa](https://github.com/user-attachments/assets/73a841d8-182d-45b7-b6ed-e7d10e8a7b42)
+
+	
+	
+Recommendation and Badges
+![Screenshot_2025-11-20-12-18-07-43_6fadc5a6af6d61dfdadcfcc4e0542daa](https://github.com/user-attachments/assets/d81cc37d-1fca-4558-8bbe-ba669dc20dc4)
+
+	
+	
+# 🧱 Project Structure
+
+``Carbon_Footprint_App/
 │
-├── FRONTEND/               # React / Next.js (UI layer)
-│   ├── components/         # Reusable UI parts
-│   ├── pages/              # App pages
-│   └── package.json
+├── FRONTEND/               # Flutter mobile application
+│   ├── lib/
+│   │   ├── screens/
+│   │   ├── widgets/
+│   │   └── services/
+│   ├── android/
+│   ├── ios/                # Buildable only via macOS
+│   └── pubspec.yaml
 │
-├── BACKEND/                # FastAPI backend
+├── BACKEND/                # FastAPI server
 │   ├── app/
-│   │   ├── main.py         # Entry point
-│   │   ├── routers/        # API routes
-│   │   └── __init__.py
-│   ├── test/               # Test files
+│   │   ├── main.py
+│   │   ├── routers/
+│   │   ├── services/
+│   │   ├── db/
+│   │   
+│   |
 │   ├── requirements.txt
-│   └── .env
+│   └── .env (ignored)
 │
-└── README.md               # Project overview
-```
+└── README.md
+``
 
-## Project overview (this file)
+# ⚙️ Setup Instructions
+🔧 Backend (FastAPI)
 ```
-
-⚙️ Getting Started
-1. Clone the project
 git clone https://github.com/Rennar77/carbon-footprint-app.git
-cd carbon-footprint-app
+cd carbon-footprint-app/BACKEND
 
-2. Backend Setup
 
-See Backend README
- for detailed instructions.
-In short:
-
-cd BACKEND
 python -m venv venv
-source venv/bin/activate   # or venv\Scripts\activate on Windows
+venv\Scripts\activate  # Windows
+
 pip install -r requirements.txt
 uvicorn app.main:app --reload
-
-
-
-cd FRONTEND
-npm install
-npm run dev
-
-
-Frontend will run on http://localhost:3000
-
-Backend will run on http://localhost:8000
 ```
 
-## 🧩 Tech Stack
+Backend URLs:
 
-Frontend: Flutter
+API Root → http://localhost:8000
 
-Backend: FastAPI, Python, Uvicorn
+Docs → http://localhost:8000/docs
 
-Database: Supabase (PostgreSQL)
+# 📱 Frontend (Flutter)
+```
+cd ../FRONTEND
 
-External API: Climatiq API for emissions data
+flutter pub get
+flutter run
+```
 
-Auth: (Planned) Supabase Auth
-
-## 🎯 Roadmap
-
- Set up FastAPI backend with Climatiq integration
-
- Create React/Next.js frontend with input forms
-
- Connect backend and frontend for live calculations
-
- Add user accounts and history tracking via Supabase
-
- Deploy (Vercel for frontend, Render/Heroku for backend)
-
-## 🤝 Contributing
-
-Fork the repo
-
-Create a new branch (feature/new-idea)
-
-Commit changes
-
-Push and open a Pull Request
-
-## 📜 License
-
-MIT License — free to use and modify.
+# To build an APK:
+``
+flutter build apk --release
+``
 
 
+APK output path:
+
+FRONTEND/build/app/outputs/flutter-apk/app-release.apk
+
+
+You can share this file directly with friends.
+
+# 🧪 Tech Stack
+Mobile
+
+Flutter (Dart)
+
+Material Design 3
+
+Backend
+
+FastAPI
+
+Python 3.11
+
+Uvicorn
+
+JWT (jose + passlib)
+
+Database
+
+PostgreSQL (Render)
+
+Custom-seeded vehicle dataset (2026 models)
+
+Auth
+
+JWT (current)
+
+Firebase OTP (planned)
+
+## 🗺️ Roadmap
+# 🚀 In Development
+
+Fixing profile bugs from deployment
+
+Adding forgot-password screen
+
+Integrating Firebase OTP (auth overhaul)
+
+# 🔜 Future Enhancements
+
+Analytics graphs (weekly/monthly footprint)
+
+Streaks & achievements
+
+Improved recommendation engine
+
+CO₂ budgets + gamification
+
+Auto-sync across devices
+
+# 🤝 Contributing
+
+Fork this repository
+
+Create a feature branch
+
+Commit your changes
+
+Submit a Pull Request
+
+# 📄 License
+
+MIT License — free for personal and commercial use.
