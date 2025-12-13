@@ -10,6 +10,12 @@ import psycopg2
 import psycopg2.extras
 import shutil
 import os
+import secrets
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime, timedelta
+
 from dotenv import load_dotenv
 
 # --------------------------
@@ -137,3 +143,189 @@ def delete_account(current_user: int = Depends(get_current_user)):
     cur.close()
     conn.close()
     return {"success": True, "message": "Account deleted successfully"}
+# --------------------------
+# Email Configuration
+# --------------------------
+SMTP_SERVER = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_USER = os.getenv("EMAIL_USER")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASS")
+RESET_URL = os.getenv("RESET_PASSWORD_URL", "http://localhost:3000/reset-password")
+
+def send_reset_email(to_email: str, reset_token: str, user_id: int):
+    """Send password reset email"""
+    if not EMAIL_USER or not EMAIL_PASSWORD:
+        print("Email credentials not configured. Skipping email send.")
+        return False
+    
+    try:
+        # For mobile apps, you might want to use a deeplink
+        reset_link = f"{RESET_URL}?token={reset_token}&user_id={user_id}"
+        
+        msg = MIMEMultipart()
+        msg['From'] = EMAIL_USER
+        msg['To'] = to_email
+        msg['Subject'] = "Password Reset - EcoTrack"
+        
+        body = f"""
+        <html>
+        <body>
+            <h2>Password Reset Request</h2>
+            <p>You requested to reset your password for your EcoTrack account.</p>
+            <p>Click the link below to reset your password:</p>
+            <p><a href="{reset_link}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
+            <p>Or copy this token to use in the app: <strong>{reset_token}</strong></p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, please ignore this email.</p>
+            <br>
+            <p>Best regards,<br>EcoTrack Team</p>
+        </body>
+        </html>
+        """
+        
+        msg.attach(MIMEText(body, 'html'))
+        
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_USER, EMAIL_PASSWORD)
+            server.send_message(msg)
+        
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
+
+# --------------------------
+# Forgot Password Routes
+# --------------------------
+@router.post("/forgot-password")
+def forgot_password(email: str):
+    """Generate and send password reset token"""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Check if user exists
+    cur.execute("SELECT id, email FROM users WHERE email=%s", (email,))
+    user = cur.fetchone()
+    
+    if not user:
+        cur.close()
+        conn.close()
+        # Return success even if user doesn't exist (security best practice)
+        return {"success": True, "message": "If your email exists, you will receive reset instructions"}
+    
+    user_id = user[0]
+    
+    # Generate reset token
+    reset_token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(hours=1)
+    
+    # Store token in database (create password_resets table)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS password_resets (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            token TEXT NOT NULL UNIQUE,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Delete any existing tokens for this user
+    cur.execute("DELETE FROM password_resets WHERE user_id=%s", (user_id,))
+    
+    # Insert new token
+    cur.execute(
+        "INSERT INTO password_resets (user_id, token, expires_at) VALUES (%s, %s, %s)",
+        (user_id, reset_token, expires_at)
+    )
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    # Send email
+    email_sent = send_reset_email(email, reset_token, user_id)
+    
+    if not email_sent and EMAIL_USER:  # Only warn if email was configured
+        return {
+            "success": False, 
+            "message": "Could not send email. Please try again later."
+        }
+    
+    return {
+        "success": True, 
+        "message": "If your email exists, you will receive reset instructions",
+        "token": reset_token  # For testing/demo - remove in production
+    }
+
+@router.post("/reset-password")
+def reset_password(token: str, new_password: str, user_id: int = None):
+    """Reset password using token"""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Clean up expired tokens first
+    cur.execute("DELETE FROM password_resets WHERE expires_at < NOW()")
+    
+    # Find valid token
+    if user_id:
+        cur.execute(
+            "SELECT * FROM password_resets WHERE token=%s AND user_id=%s",
+            (token, user_id)
+        )
+    else:
+        cur.execute("SELECT * FROM password_resets WHERE token=%s", (token,))
+    
+    reset_record = cur.fetchone()
+    
+    if not reset_record:
+        cur.close()
+        conn.close()
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    # Hash new password
+    hashed_password = hash_password(new_password)
+    
+    # Update user password
+    cur.execute(
+        "UPDATE users SET password=%s WHERE id=%s",
+        (hashed_password, reset_record[1])  # reset_record[1] is user_id
+    )
+    
+    # Delete used token
+    cur.execute("DELETE FROM password_resets WHERE token=%s", (token,))
+    
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return {"success": True, "message": "Password reset successful"}
+
+@router.post("/verify-reset-token")
+def verify_reset_token(token: str, user_id: int = None):
+    """Verify if a reset token is valid"""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Clean up expired tokens
+    cur.execute("DELETE FROM password_resets WHERE expires_at < NOW()")
+    
+    # Check token
+    if user_id:
+        cur.execute(
+            "SELECT * FROM password_resets WHERE token=%s AND user_id=%s",
+            (token, user_id)
+        )
+    else:
+        cur.execute("SELECT * FROM password_resets WHERE token=%s", (token,))
+    
+    reset_record = cur.fetchone()
+    
+    cur.close()
+    conn.close()
+    
+    if not reset_record:
+        return {"valid": False, "message": "Invalid or expired token"}
+    
+    return {"valid": True, "user_id": reset_record[1]}

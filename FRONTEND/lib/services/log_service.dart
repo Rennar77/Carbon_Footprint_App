@@ -1,7 +1,5 @@
 // lib/services/log_service.dart
 import '../services/api_service.dart';
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 
 class LogService {
   /// ✅ Fetch available vehicles
