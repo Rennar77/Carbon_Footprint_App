@@ -1,5 +1,5 @@
-# lib/services/auth_routes.py (or wherever your auth router is)
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+# lib/services/auth_routes.py 
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from typing import Optional
@@ -196,111 +196,134 @@ def send_reset_email(to_email: str, reset_token: str, user_id: int):
         return False
 
 # --------------------------
-# Forgot Password Routes
+# Forgot Password Routes - OPTION 3
 # --------------------------
 @router.post("/forgot-password")
-def forgot_password(email: str):
+async def forgot_password(request: Request):
     """Generate and send password reset token"""
-    conn = get_db()
-    cur = conn.cursor()
-    
-    # Check if user exists
-    cur.execute("SELECT id, email FROM users WHERE email=%s", (email,))
-    user = cur.fetchone()
-    
-    if not user:
+    try:
+        data = await request.json()
+        email = data.get("email")
+        
+        if not email:
+            raise HTTPException(status_code=400, detail="Email is required")
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Check if user exists
+        cur.execute("SELECT id, email FROM users WHERE email=%s", (email,))
+        user = cur.fetchone()
+        
+        if not user:
+            cur.close()
+            conn.close()
+            # Return success even if user doesn't exist (security best practice)
+            return {"success": True, "message": "If your email exists, you will receive reset instructions"}
+        
+        user_id = user[0]
+        
+        # Generate reset token
+        reset_token = secrets.token_urlsafe(32)
+        expires_at = datetime.utcnow() + timedelta(hours=1)
+        
+        # Store token in database (create password_resets table)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS password_resets (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                token TEXT NOT NULL UNIQUE,
+                expires_at TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Delete any existing tokens for this user
+        cur.execute("DELETE FROM password_resets WHERE user_id=%s", (user_id,))
+        
+        # Insert new token
+        cur.execute(
+            "INSERT INTO password_resets (user_id, token, expires_at) VALUES (%s, %s, %s)",
+            (user_id, reset_token, expires_at)
+        )
+        
+        conn.commit()
         cur.close()
         conn.close()
-        # Return success even if user doesn't exist (security best practice)
-        return {"success": True, "message": "If your email exists, you will receive reset instructions"}
-    
-    user_id = user[0]
-    
-    # Generate reset token
-    reset_token = secrets.token_urlsafe(32)
-    expires_at = datetime.utcnow() + timedelta(hours=1)
-    
-    # Store token in database (create password_resets table)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS password_resets (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            token TEXT NOT NULL UNIQUE,
-            expires_at TIMESTAMP NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    
-    # Delete any existing tokens for this user
-    cur.execute("DELETE FROM password_resets WHERE user_id=%s", (user_id,))
-    
-    # Insert new token
-    cur.execute(
-        "INSERT INTO password_resets (user_id, token, expires_at) VALUES (%s, %s, %s)",
-        (user_id, reset_token, expires_at)
-    )
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    # Send email
-    email_sent = send_reset_email(email, reset_token, user_id)
-    
-    if not email_sent and EMAIL_USER:  # Only warn if email was configured
+        
+        # Send email (comment out for testing)
+        # email_sent = send_reset_email(email, reset_token, user_id)
+        
+        # if not email_sent and EMAIL_USER:  # Only warn if email was configured
+        #     return {
+        #         "success": False, 
+        #         "message": "Could not send email. Please try again later."
+        #     }
+        
         return {
-            "success": False, 
-            "message": "Could not send email. Please try again later."
+            "success": True, 
+            "message": "If your email exists, you will receive reset instructions",
+            "token": reset_token,  # For testing/demo - remove in production
+            "user_id": user_id
         }
-    
-    return {
-        "success": True, 
-        "message": "If your email exists, you will receive reset instructions",
-        "token": reset_token  # For testing/demo - remove in production
-    }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/reset-password")
-def reset_password(token: str, new_password: str, user_id: int = None):
+async def reset_password(request: Request):
     """Reset password using token"""
-    conn = get_db()
-    cur = conn.cursor()
-    
-    # Clean up expired tokens first
-    cur.execute("DELETE FROM password_resets WHERE expires_at < NOW()")
-    
-    # Find valid token
-    if user_id:
+    try:
+        data = await request.json()
+        token = data.get("token")
+        new_password = data.get("new_password")
+        user_id = data.get("user_id")
+        
+        if not token or not new_password:
+            raise HTTPException(status_code=400, detail="Token and new password are required")
+        
+        conn = get_db()
+        cur = conn.cursor()
+        
+        # Clean up expired tokens first
+        cur.execute("DELETE FROM password_resets WHERE expires_at < NOW()")
+        
+        # Find valid token
+        if user_id:
+            cur.execute(
+                "SELECT * FROM password_resets WHERE token=%s AND user_id=%s",
+                (token, user_id)
+            )
+        else:
+            cur.execute("SELECT * FROM password_resets WHERE token=%s", (token,))
+        
+        reset_record = cur.fetchone()
+        
+        if not reset_record:
+            cur.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        
+        # Hash new password
+        hashed_password = hash_password(new_password)
+        
+        # Update user password
         cur.execute(
-            "SELECT * FROM password_resets WHERE token=%s AND user_id=%s",
-            (token, user_id)
+            "UPDATE users SET password=%s WHERE id=%s",
+            (hashed_password, reset_record[1])  # reset_record[1] is user_id
         )
-    else:
-        cur.execute("SELECT * FROM password_resets WHERE token=%s", (token,))
-    
-    reset_record = cur.fetchone()
-    
-    if not reset_record:
+        
+        # Delete used token
+        cur.execute("DELETE FROM password_resets WHERE token=%s", (token,))
+        
+        conn.commit()
         cur.close()
         conn.close()
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-    
-    # Hash new password
-    hashed_password = hash_password(new_password)
-    
-    # Update user password
-    cur.execute(
-        "UPDATE users SET password=%s WHERE id=%s",
-        (hashed_password, reset_record[1])  # reset_record[1] is user_id
-    )
-    
-    # Delete used token
-    cur.execute("DELETE FROM password_resets WHERE token=%s", (token,))
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
-    return {"success": True, "message": "Password reset successful"}
+        
+        return {"success": True, "message": "Password reset successful"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/verify-reset-token")
 def verify_reset_token(token: str, user_id: int = None):

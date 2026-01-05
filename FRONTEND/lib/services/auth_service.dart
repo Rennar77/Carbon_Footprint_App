@@ -25,10 +25,10 @@ class AuthService {
 
         return {"success": true, "data": data};
       } else {
+        final errorData = jsonDecode(response.body);
         return {
           "success": false,
-          "message":
-              jsonDecode(response.body)['detail'] ?? 'Login failed. Try again.'
+          "message": errorData['detail'] ?? 'Login failed. Try again.'
         };
       }
     } catch (e) {
@@ -52,10 +52,10 @@ class AuthService {
           "message": "Registration successful! You can now log in."
         };
       } else {
+        final errorData = jsonDecode(response.body);
         return {
           "success": false,
-          "message":
-              jsonDecode(response.body)['detail'] ?? 'Registration failed.'
+          "message": errorData['detail'] ?? 'Registration failed.'
         };
       }
     } catch (e) {
@@ -81,7 +81,7 @@ class AuthService {
     return prefs.getString('token');
   }
 
-  /// 🔹 Forgot Password
+  ///  Forgot Password 
   static Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
       final response = await http.post(
@@ -90,13 +90,28 @@ class AuthService {
         body: jsonEncode({'email': email}),
       );
 
+      // Debug print
+      print('Forgot Password Response Status: ${response.statusCode}');
+      print('Forgot Password Response Body: ${response.body}');
+
       final data = jsonDecode(response.body);
-      return {
-        'success': response.statusCode == 200,
-        'message': data['message'] ?? 'An error occurred',
-        'token': data['token'], // For testing only
-      };
+      
+      // Handle different response formats
+      if (response.statusCode == 200) {
+        return {
+          'success': data['success'] ?? true,  // Use backend's success flag
+          'message': data['message'] ?? 'Reset instructions sent',
+          'token': data['token'], // For testing/development
+          'user_id': data['user_id'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['detail'] ?? data['message'] ?? 'Failed to process request',
+        };
+      }
     } catch (e) {
+      print('Forgot Password Error: $e');
       return {
         'success': false,
         'message': 'Network error: $e',
@@ -104,7 +119,7 @@ class AuthService {
     }
   }
 
-  /// 🔹 Reset Password
+  /// Reset Password 
   static Future<Map<String, dynamic>> resetPassword({
     required String token,
     required String newPassword,
@@ -126,19 +141,25 @@ class AuthService {
         body: jsonEncode(body),
       );
 
+      // Debug print
+      print('Reset Password Response Status: ${response.statusCode}');
+      print('Reset Password Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'message': 'Password reset successful',
-        };
-      } else {
         final data = jsonDecode(response.body);
         return {
+          'success': data['success'] ?? true,
+          'message': data['message'] ?? 'Password reset successful',
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
           'success': false,
-          'message': data['detail'] ?? 'Failed to reset password',
+          'message': errorData['detail'] ?? errorData['message'] ?? 'Failed to reset password',
         };
       }
     } catch (e) {
+      print('Reset Password Error: $e');
       return {
         'success': false,
         'message': 'Network error: $e',
@@ -146,7 +167,7 @@ class AuthService {
     }
   }
 
-  /// 🔹 Verify Reset Token
+  /// Verify Reset Token 
   static Future<Map<String, dynamic>> verifyResetToken({
     required String token,
     int? userId,
@@ -164,16 +185,49 @@ class AuthService {
         body: jsonEncode(body),
       );
 
-      final data = jsonDecode(response.body);
-      return {
-        'valid': data['valid'] ?? false,
-        'message': data['message'],
-        'user_id': data['user_id'],
-      };
+      // Debug print
+      print('Verify Token Response Status: ${response.statusCode}');
+      print('Verify Token Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'valid': data['valid'] ?? false,
+          'message': data['message'],
+          'user_id': data['user_id'],
+        };
+      } else {
+        return {
+          'valid': false,
+          'message': 'Failed to verify token',
+        };
+      }
     } catch (e) {
+      print('Verify Token Error: $e');
       return {
         'valid': false,
         'message': 'Network error: $e',
+      };
+    }
+  }
+
+  ///  Test API Connection
+  static Future<Map<String, dynamic>> testConnection() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      return {
+        'success': response.statusCode == 200,
+        'status': response.statusCode,
+        'message': response.body,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Connection error: $e',
       };
     }
   }

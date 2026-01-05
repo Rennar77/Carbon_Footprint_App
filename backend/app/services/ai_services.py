@@ -3,25 +3,31 @@ import os
 import logging
 import re
 from typing import Dict, Any
-import google.generativeai as genai
+import google.genai as genai 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Configure Gemini API
+# Configure Gemini API 
 gemini_api_key = os.getenv("GEMINI_API_KEY")
 if not gemini_api_key:
     logging.warning("GEMINI_API_KEY not set. AI features will use fallback.")
     gemini_client = None
 else:
     try:
-        genai.configure(api_key=gemini_api_key)
-        # Use gemini-1.5-flash for faster responses (free tier eligible)
-        gemini_client = genai.GenerativeModel('gemini-1.5-flash')
-        logging.info("Gemini API configured successfully")
+        
+        client = genai.Client(api_key=gemini_api_key)
+        
+        # Test with a simple model - use gemini-2.0-flash-001 (stable version)
+        test_model = "gemini-2.0-flash-001"
+        gemini_client = client
+        gemini_model = test_model
+        
+        logging.info(f"Gemini API configured successfully with model: {test_model}")
     except Exception as e:
         logging.error(f"Failed to configure Gemini API: {e}")
         gemini_client = None
+        gemini_model = None
 
 
 def clean_gemini_response(text: str) -> str:
@@ -48,7 +54,7 @@ async def generate_recommendation(user_summary: Dict[str, Any]) -> str:
     Generate a concise, actionable sustainability recommendation.
     The output is a single sentence in plain text.
     """
-    if not gemini_client:
+    if not gemini_client or not gemini_model:
         logging.warning("Gemini client not initialized, using fallback.")
         return get_fallback_recommendation(user_summary)
 
@@ -79,20 +85,15 @@ Example outputs:
 """
 
     try:
-        # Generate content with Gemini
-        response = gemini_client.generate_content(
-            prompt,
-            generation_config={
-                'max_output_tokens': 100,
-                'temperature': 0.3,  # Slightly creative but mostly deterministic
-                'top_p': 0.8,
-                'top_k': 40,
-            },
-            safety_settings={
-                'HARM_CATEGORY_HARASSMENT': 'BLOCK_NONE',
-                'HARM_CATEGORY_HATE_SPEECH': 'BLOCK_NONE',
-                'HARM_CATEGORY_SEXUALLY_EXPLICIT': 'BLOCK_NONE',
-                'HARM_CATEGORY_DANGEROUS_CONTENT': 'BLOCK_NONE',
+        # NEW API call format
+        response = gemini_client.models.generate_content(
+            model=gemini_model,
+            contents=prompt,
+            config={
+                "max_output_tokens": 100,
+                "temperature": 0.3,
+                "top_p": 0.8,
+                "top_k": 40,
             }
         )
         
@@ -143,48 +144,80 @@ def get_fallback_recommendation(user_summary: Dict[str, Any]) -> str:
         return fallbacks[4]
 
 
-# Alternative: Google AI Studio API (older version)
-async def generate_recommendation_google_ai_studio(user_summary: Dict[str, Any]) -> str:
-    """
-    Alternative using Google AI Studio API (if you prefer that interface)
-    """
-    import requests
-    
-    api_key = os.getenv("GOOGLE_AI_STUDIO_API_KEY") or os.getenv("GEMINI_API_KEY")
-    if not api_key:
+# Alternative: Using async version
+async def generate_recommendation_async(user_summary: Dict[str, Any]) -> str:
+    """Async version using the new package."""
+    if not gemini_client or not gemini_model:
         return get_fallback_recommendation(user_summary)
     
     summary_str = ", ".join(f"{k}: {v}" for k, v in user_summary.items())
     
-    prompt = f"Give one short sustainability recommendation based on: {summary_str}"
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
-    
-    headers = {
-        'Content-Type': 'application/json',
-    }
-    
-    data = {
-        "contents": [{
-            "parts": [{
-                "text": prompt
-            }]
-        }],
-        "generationConfig": {
-            "maxOutputTokens": 100,
-            "temperature": 0.3
-        }
-    }
+    prompt = f"Give one short sustainability recommendation based on: {summary_str}. One sentence only."
     
     try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
+        response = await gemini_client.aio.models.generate_content(
+            model=gemini_model,
+            contents=prompt,
+            config={
+                "max_output_tokens": 100,
+                "temperature": 0.3,
+            }
+        )
         
-        result = response.json()
-        text = result['candidates'][0]['content']['parts'][0]['text']
-        
-        return clean_gemini_response(text)
+        return clean_gemini_response(response.text)
         
     except Exception as e:
-        logging.error(f"Google AI Studio API failed: {e}")
+        logging.error(f"Async Gemini API failed: {e}")
         return get_fallback_recommendation(user_summary)
+
+
+# Simple test function
+def test_gemini_connection():
+    """Test if Gemini API is working."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("❌ GEMINI_API_KEY not set in .env file")
+        return False
+    
+    try:
+        # NEW package initialization
+        client = genai.Client(api_key=api_key)
+        
+        # Try with gemini-2.0-flash-001 (stable version from your list)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-001",
+            contents="Say 'Hello' in one sentence.",
+            config={"max_output_tokens": 50}
+        )
+        
+        print(f"✅ Gemini API connected successfully!")
+        print(f"   Response: {response.text}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Gemini API connection failed: {e}")
+        return False
+
+
+# List available models (updated for new package)
+def list_available_models():
+    """List all available Gemini models with new package."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("Please set GEMINI_API_KEY in .env file")
+        return
+    
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        print("Available models that support generate_content:")
+        models = client.models.list()
+        
+        for model in models:
+            if 'generate_content' in model.supported_generation_methods:
+                print(f"\n- {model.name}")
+                print(f"  Display: {model.display_name}")
+                print(f"  Description: {model.description}")
+                
+    except Exception as e:
+        print(f"Error listing models: {e}")
